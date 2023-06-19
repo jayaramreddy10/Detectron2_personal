@@ -127,65 +127,71 @@ if __name__ == "__main__":
 
         n_image = 1
         # Loop through all files in the input dir
+        corrupted_images = []
         for file in os.listdir(args.input[0]):
-            # Check if the file ends with .jpg or .jpeg extension
             if file.lower().endswith(".jpg") or file.lower().endswith(".jpeg"):
         # for path in tqdm.tqdm(args.input, disable=not args.output):
             # use PIL, to be consistent with evaluation
                 image_name = file.lower().split('.')[0]
-                print(image_name)
-                img = read_image(args.input[0] + file, format="BGR")    #path
-                start_time = time.time()
-                predictions, visualized_output = demo.run_on_image(img)
-                logger.info(
-                    "{}: {} in {:.2f}s".format(
-                        file, # path,
-                        "detected {} instances".format(len(predictions["instances"]))
-                        if "instances" in predictions
-                        else "finished",
-                        time.time() - start_time,
+                try: 
+                    img = read_image(args.input[0] + file, format="BGR")    #path
+                    start_time = time.time()
+                    predictions, visualized_output = demo.run_on_image(img)
+                    logger.info(
+                        "{}: {} in {:.2f}s".format(
+                            file, # path,
+                            "detected {} instances".format(len(predictions["instances"]))
+                            if "instances" in predictions
+                            else "finished",
+                            time.time() - start_time,
+                        )
                     )
-                )
 
-                file_path = os.path.join(annotations_folder_path, image_name + ".txt")  # Specify the path to the output file
-                with open(file_path, "w") as file:
-                    # Write content to the file
-                    coco_annotations = {
-                        "annotations": [],
-                        # "images": [],
-                        # "categories": []
-                    }
-
-                    file.write("num instances: " + str(len(predictions["instances"])) + "\n")
-                    for i in range(len(predictions["instances"])):
-                        mask = predictions["instances"][i]._fields['pred_masks'].squeeze().cpu().numpy()
-                        ones_indices = np.argwhere(mask == 1)
-                        # print('first and last indices where elements are 1: {}, {}'.format(ones_indices[0], ones_indices[-1]))
-
-                        file.write("COCO class for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['pred_classes'].item()) + "\n")
-                        file.write("score for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['scores'].item()) + "\n")
-                        rle_mask = binary_mask_to_rle(mask)
-            
-                        # Creating annotation entry
-                        annotation = {
-                            "id": i + 1,  # Unique identifier for each mask
-                            # "image_id": 1,  # Unique identifier for the corresponding image
-                            # "category_id": 1,  # Unique identifier for the category
-                            "segmentation": rle_mask,
-                            "area": int(mask.sum().item())  # Area of the mask
+                    file_path = os.path.join(annotations_folder_path, image_name + ".txt")  # Specify the path to the output file
+                    with open(file_path, "w") as file:
+                        # Write content to the file
+                        coco_annotations = {
+                            "annotations": [],
+                            # "images": [],
+                            # "categories": []
                         }
-                        
-                        coco_annotations["annotations"].append(annotation)       
 
-                        file.write("**************************************************************************************************************" + "\n")
+                        file.write("num instances: " + str(len(predictions["instances"])) + "\n")
+                        for i in range(len(predictions["instances"])):
+                            mask = predictions["instances"][i]._fields['pred_masks'].squeeze().cpu().numpy()
+                            ones_indices = np.argwhere(mask == 1)
+                            # print('first and last indices where elements are 1: {}, {}'.format(ones_indices[0], ones_indices[-1]))
 
-                # Save the annotations to a JSON file
-                json_file_path = os.path.join(masks_info_folder_path, image_name + ".json")  # Specify the path to the output file
-                with open(json_file_path, 'w') as json_file:
-                    json.dump(coco_annotations, json_file)
+                            file.write("COCO class for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['pred_classes'].item()) + "\n")
+                            file.write("score for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['scores'].item()) + "\n")
+                            rle_mask = binary_mask_to_rle(mask)
+                
+                            # Creating annotation entry
+                            annotation = {
+                                "id": i + 1,  # Unique identifier for each mask
+                                # "image_id": 1,  # Unique identifier for the corresponding image
+                                # "category_id": 1,  # Unique identifier for the category
+                                "segmentation": rle_mask,
+                                "area": int(mask.sum().item())  # Area of the mask
+                            }
+                            
+                            coco_annotations["annotations"].append(annotation)       
 
-                n_image += 1
+                            file.write("**************************************************************************************************************" + "\n")
 
+                    # Save the annotations to a JSON file
+                    json_file_path = os.path.join(masks_info_folder_path, image_name + ".json")  # Specify the path to the output file
+                    with open(json_file_path, 'w') as json_file:
+                        json.dump(coco_annotations, json_file)
+
+                    n_image += 1
+
+                except (IOError, OSError) as e:
+                    # Exception handling code
+                    corrupted_images.append(image_name)
+                    print(f"Error occurred while reading '{image_name}': {e}")
+                    continue  # Continue to the next iteration
+                
             if args.output:
                 if os.path.isdir(args.output):
                     assert os.path.isdir(args.output), args.output
@@ -199,6 +205,14 @@ if __name__ == "__main__":
             #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
             #     if cv2.waitKey(0) == 27:
             #         break  # esc to quit
+
+        corrupted_file_path = os.path.join(args.input[0], "corrupted_images.txt")
+        with open(corrupted_file_path, "w") as file:
+            # Write corrupted images to a text file
+            for img in corrupted_images:
+                file.write(img + "\n")
+
+
     elif args.webcam:
         assert args.input is None, "Cannot have both --input and --webcam!"
         assert args.output is None, "output not yet supported with --webcam!"
