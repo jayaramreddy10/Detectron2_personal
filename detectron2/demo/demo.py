@@ -42,7 +42,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 demo for builtin configs")
     parser.add_argument(
         "--config-file",
-        default="/home/jayaram/research/research_tracks/multibody_slam/instance_segmentation_detectron2/detectron2/configs/quick_schedules/mask_rcnn_R_50_FPN_inference_acc_test.yaml",
+        default="configs/quick_schedules/mask_rcnn_R_50_FPN_inference_acc_test.yaml",
         metavar="FILE",
         help="path to config file",
     )
@@ -133,6 +133,7 @@ if __name__ == "__main__":
         # for path in tqdm.tqdm(args.input, disable=not args.output):
             # use PIL, to be consistent with evaluation
                 image_name = file.lower().split('.')[0]
+                print(image_name)
                 img = read_image(args.input[0] + file, format="BGR")    #path
                 start_time = time.time()
                 predictions, visualized_output = demo.run_on_image(img)
