@@ -11,6 +11,7 @@ import cv2
 import tqdm
 import json
 from itertools import groupby
+import requests
 
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
@@ -101,6 +102,65 @@ def binary_mask_to_rle(binary_mask):
         counts.append(len(list(elements)))
     return rle
 
+def download_image(url, save_path):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(save_path, 'wb') as file:
+            file.write(response.content)
+        print(f"Image downloaded successfully: {save_path}")
+    else:
+        print(f"Failed to download image: {url}")
+
+def extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path):
+    start_time = time.time()
+    predictions, visualized_output = demo.run_on_image(img)
+    logger.info(
+        "{}: {} in {:.2f}s".format(
+            file, # path,
+            "detected {} instances".format(len(predictions["instances"]))
+            if "instances" in predictions
+            else "finished",
+            time.time() - start_time,
+        )
+    )
+
+    file_path = os.path.join(annotations_folder_path, image_name + ".txt")  # Specify the path to the output file
+    with open(file_path, "w") as file:
+        # Write content to the file
+        coco_annotations = {
+            "annotations": [],
+            # "images": [],
+            # "categories": []
+        }
+
+        file.write("num instances: " + str(len(predictions["instances"])) + "\n")
+        for i in range(len(predictions["instances"])):
+            mask = predictions["instances"][i]._fields['pred_masks'].squeeze().cpu().numpy()
+            # ones_indices = np.argwhere(mask == 1)
+            # print('first and last indices where elements are 1: {}, {}'.format(ones_indices[0], ones_indices[-1]))
+
+            file.write("COCO class for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['pred_classes'].item()) + "\n")
+            file.write("score for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['scores'].item()) + "\n")
+            rle_mask = binary_mask_to_rle(mask)
+
+            # Creating annotation entry
+            annotation = {
+                "id": i + 1,  # Unique identifier for each mask
+                # "image_id": 1,  # Unique identifier for the corresponding image
+                # "category_id": 1,  # Unique identifier for the category
+                "segmentation": rle_mask,
+                "area": int(mask.sum().item())  # Area of the mask
+            }
+            
+            coco_annotations["annotations"].append(annotation)       
+
+            file.write("**************************************************************************************************************" + "\n")
+
+    # Save the annotations to a JSON file
+    json_file_path = os.path.join(masks_info_folder_path, image_name + ".json")  # Specify the path to the output file
+    with open(json_file_path, 'w') as json_file:
+        json.dump(coco_annotations, json_file)
+
 if __name__ == "__main__":
     mp.set_start_method("spawn", force=True)
     args = get_parser().parse_args()
@@ -127,75 +187,38 @@ if __name__ == "__main__":
 
         n_image = 1
         # Loop through all files in the input dir
+        base_url = 'http://platformpgh.cs.cmu.edu/live_stream/carfusion/Morewood/0/'     #change manually while running this script to extract masks
         corrupted_images = []
         for file in os.listdir(args.input[0]):
             if file.lower().endswith(".jpg") or file.lower().endswith(".jpeg"):
         # for path in tqdm.tqdm(args.input, disable=not args.output):
             # use PIL, to be consistent with evaluation
                 image_name = file.lower().split('.')[0]
-                print(image_name)
+                print('image name: {}'.format(image_name))
                 try: 
-                    img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly
+                    img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
                     # if(image_name.isdigit() == False):
                     if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
                         continue
 
-                    start_time = time.time()
-                    predictions, visualized_output = demo.run_on_image(img)
-                    logger.info(
-                        "{}: {} in {:.2f}s".format(
-                            file, # path,
-                            "detected {} instances".format(len(predictions["instances"]))
-                            if "instances" in predictions
-                            else "finished",
-                            time.time() - start_time,
-                        )
-                    )
-
-                    file_path = os.path.join(annotations_folder_path, image_name + ".txt")  # Specify the path to the output file
-                    with open(file_path, "w") as file:
-                        # Write content to the file
-                        coco_annotations = {
-                            "annotations": [],
-                            # "images": [],
-                            # "categories": []
-                        }
-
-                        file.write("num instances: " + str(len(predictions["instances"])) + "\n")
-                        for i in range(len(predictions["instances"])):
-                            mask = predictions["instances"][i]._fields['pred_masks'].squeeze().cpu().numpy()
-                            ones_indices = np.argwhere(mask == 1)
-                            # print('first and last indices where elements are 1: {}, {}'.format(ones_indices[0], ones_indices[-1]))
-
-                            file.write("COCO class for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['pred_classes'].item()) + "\n")
-                            file.write("score for " + str(i) + " instance: " + str(predictions["instances"][i]._fields['scores'].item()) + "\n")
-                            rle_mask = binary_mask_to_rle(mask)
-                
-                            # Creating annotation entry
-                            annotation = {
-                                "id": i + 1,  # Unique identifier for each mask
-                                # "image_id": 1,  # Unique identifier for the corresponding image
-                                # "category_id": 1,  # Unique identifier for the category
-                                "segmentation": rle_mask,
-                                "area": int(mask.sum().item())  # Area of the mask
-                            }
-                            
-                            coco_annotations["annotations"].append(annotation)       
-
-                            file.write("**************************************************************************************************************" + "\n")
-
-                    # Save the annotations to a JSON file
-                    json_file_path = os.path.join(masks_info_folder_path, image_name + ".json")  # Specify the path to the output file
-                    with open(json_file_path, 'w') as json_file:
-                        json.dump(coco_annotations, json_file)
-
-                    n_image += 1
+                    extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
 
                 except (IOError, OSError) as e:
                     # Exception handling code
                     corrupted_images.append(image_name)
                     print(f"Error occurred while reading '{image_name}': {e}")
-                    continue  # Continue to the next iteration
+    
+                    image_url = base_url + file
+                    save_path = os.path.join(args.input[0], file)
+                    download_image(image_url, save_path)
+
+                    img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly
+                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
+                        continue
+
+                    extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
+
+                    # continue  # Continue to the next iteration
                 
             if args.output:
                 if os.path.isdir(args.output):
@@ -204,12 +227,14 @@ if __name__ == "__main__":
                 else:
                     assert len(args.input) == 1, "Please specify a directory with args.output"
                     out_filename = args.output
-                visualized_output.save(out_filename)
+                # visualized_output.save(out_filename)
             # else:
             #     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
             #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
             #     if cv2.waitKey(0) == 27:
             #         break  # esc to quit
+
+            n_image += 1
 
         corrupted_file_path = os.path.join(args.input[0], "corrupted_images.txt")
         with open(corrupted_file_path, "w") as file:
