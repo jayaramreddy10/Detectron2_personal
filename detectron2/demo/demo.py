@@ -194,32 +194,28 @@ if __name__ == "__main__":
                 while(True):
             # for path in tqdm.tqdm(args.input, disable=not args.output):
                 # use PIL, to be consistent with evaluation
+                    num_tries = 0
                     image_name = file.lower().split('.')[0]
                     print('image name: {}'.format(image_name))
                     try: 
                         img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
                         # if(image_name.isdigit() == False):
                         if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
-                            continue
+                            break
 
+                        image_url = base_url + file
+                        save_path = os.path.join(args.input[0], file)
+                        download_image(image_url, save_path)
                         extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
 
                     except (IOError, OSError) as e:
                         # Exception handling code
-                        corrupted_images.append(image_name)
-                        print(f"Error occurred while reading '{image_name}': {e}")
-        
-                        image_url = base_url + file
-                        save_path = os.path.join(args.input[0], file)
-                        download_image(image_url, save_path)
+                        if(num_tries == 0):
+                            corrupted_images.append(image_name)
+                            print(f"Error occurred while reading '{image_name}': {e}")
 
-                        img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly
-                        if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
-                            continue
-
-                        extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
-
-                        # continue  # Continue to the next iteration
+                        num_tries = num_tries + 1
+                        continue  # Continue to the next iteration
                     
                     break    #break while loop only when code in try block succeeds.
                     
