@@ -191,35 +191,36 @@ if __name__ == "__main__":
         corrupted_images = []
         for file in os.listdir(args.input[0]):
             if file.lower().endswith(".jpg") or file.lower().endswith(".jpeg"):
-        # for path in tqdm.tqdm(args.input, disable=not args.output):
-            # use PIL, to be consistent with evaluation
-                image_name = file.lower().split('.')[0]
-                print('image name: {}'.format(image_name))
-                try: 
-                    img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
-                    # if(image_name.isdigit() == False):
-                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
-                        continue
+                while(True):
+            # for path in tqdm.tqdm(args.input, disable=not args.output):
+                # use PIL, to be consistent with evaluation
+                    image_name = file.lower().split('.')[0]
+                    print('image name: {}'.format(image_name))
+                    try: 
+                        img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
+                        # if(image_name.isdigit() == False):
+                        if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
+                            continue
 
-                    extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
+                        extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
 
-                except (IOError, OSError) as e:
-                    # Exception handling code
-                    corrupted_images.append(image_name)
-                    print(f"Error occurred while reading '{image_name}': {e}")
-    
-                    image_url = base_url + file
-                    save_path = os.path.join(args.input[0], file)
-                    download_image(image_url, save_path)
+                    except (IOError, OSError) as e:
+                        # Exception handling code
+                        corrupted_images.append(image_name)
+                        print(f"Error occurred while reading '{image_name}': {e}")
+        
+                        image_url = base_url + file
+                        save_path = os.path.join(args.input[0], file)
+                        download_image(image_url, save_path)
 
-                    img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly
-                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
-                        continue
+                        img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly
+                        if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
+                            continue
 
-                    extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
+                        extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
 
-                    # continue  # Continue to the next iteration
-                
+                        # continue  # Continue to the next iteration
+                    
             if args.output:
                 if os.path.isdir(args.output):
                     assert os.path.isdir(args.output), args.output
@@ -228,11 +229,11 @@ if __name__ == "__main__":
                     assert len(args.input) == 1, "Please specify a directory with args.output"
                     out_filename = args.output
                 # visualized_output.save(out_filename)
-            # else:
-            #     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-            #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
-            #     if cv2.waitKey(0) == 27:
-            #         break  # esc to quit
+                # else:
+                #     cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+                #     cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
+                #     if cv2.waitKey(0) == 27:
+                #         break  # esc to quit
 
             n_image += 1
 
