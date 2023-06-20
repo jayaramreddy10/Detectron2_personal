@@ -133,8 +133,13 @@ if __name__ == "__main__":
         # for path in tqdm.tqdm(args.input, disable=not args.output):
             # use PIL, to be consistent with evaluation
                 image_name = file.lower().split('.')[0]
+                print(image_name)
                 try: 
-                    img = read_image(args.input[0] + file, format="BGR")    #path
+                    img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly
+                    # if(image_name.isdigit() == False):
+                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
+                        continue
+
                     start_time = time.time()
                     predictions, visualized_output = demo.run_on_image(img)
                     logger.info(
