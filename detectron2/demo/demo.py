@@ -198,14 +198,15 @@ if __name__ == "__main__":
                     image_name = file.lower().split('.')[0]
                     print('image name: {}'.format(image_name))
                     try: 
-                        img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
-                        # if(image_name.isdigit() == False):
                         if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
                             break
-
+                        
                         image_url = base_url + file
                         save_path = os.path.join(args.input[0], file)
                         download_image(image_url, save_path)
+                        img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
+                        # if(image_name.isdigit() == False):
+
                         extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)
 
                     except (IOError, OSError) as e:
