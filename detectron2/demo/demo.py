@@ -221,6 +221,8 @@ if __name__ == "__main__":
 
                         # continue  # Continue to the next iteration
                     
+                    break    #break while loop only when code in try block succeeds.
+                    
             if args.output:
                 if os.path.isdir(args.output):
                     assert os.path.isdir(args.output), args.output
