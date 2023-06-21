@@ -198,7 +198,7 @@ if __name__ == "__main__":
                 print('image name: {}'.format(image_name))
                 try: 
                     if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
-                        break
+                        continue
                     
                     # image_url = base_url + file
                     # save_path = os.path.join(args.input[0], file)
