@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
         n_image = 1
         # Loop through all files in the input dir
-        base_url = 'http://platformpgh.cs.cmu.edu/live_stream/carfusion/Morewood/7/'     #change manually while running this script to extract masks
+        base_url = 'http://platformpgh.cs.cmu.edu/live_stream/carfusion/Morewood/0/'     #change manually while running this script to extract masks
         corrupted_images = []
         for file in os.listdir(args.input[0]):
             if file.lower().endswith(".jpg") or file.lower().endswith(".jpeg"):
@@ -197,7 +197,8 @@ if __name__ == "__main__":
                 image_name = file.lower().split('.')[0]
                 print('image name: {}'.format(image_name))
                 try: 
-                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
+                    file_path = os.path.join(os.path.join(args.input[0], "masks_info_folder"), image_name + ".json")
+                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0)) or (os.path.isfile(file_path))):
                         continue
                     
                     # image_url = base_url + file
