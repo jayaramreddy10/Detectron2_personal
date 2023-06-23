@@ -126,7 +126,7 @@ def download_image(url, save_path):
     else:
         print(f"Failed to download image: {url}")
 
-def extract_and_save_feature_matches(img_1, img_2):
+def extract_and_save_feature_matches(img_1, img_2, img1_name, img2_name, sift_features_folder_path):
 
     # step1: get corresponding points using SIFT
     minHessian = 400
@@ -145,6 +145,10 @@ def extract_and_save_feature_matches(img_1, img_2):
     for m,n in knn_matches:
         if m.distance < ratio_thresh * n.distance:
             good_matches.append(m)
+    
+    X1_list_all = [kps_1[match.queryIdx].pt for match in good_matches] 
+    X2_list_all = [kps_2[match.trainIdx].pt for match in good_matches]
+
     n_good_matches = len(good_matches)
     good_matches = random.sample(good_matches, n_good_matches//4)
 
@@ -184,7 +188,7 @@ def extract_and_save_feature_matches(img_1, img_2):
     # #matches[:300]
 
     # Save the image to a file
-    output_file = 'output_image.jpg'  # Replace 'output_image.jpg' with your desired file name
+    output_file = os.path.join(sift_features_folder_path, img1_name + "_sift_" + img2_name + ".jpg")  # Replace 'output_image.jpg' with your desired file name
     cv2.imwrite(output_file, img_3)
 
     # plt.imshow(img_3)
@@ -195,23 +199,33 @@ def extract_and_save_feature_matches(img_1, img_2):
     # plot_images(img_set, 3, 1, ['image 1','image 2', 'image with feature matching'])
 
     #select best n feature matches
-    n_matches = 50
-    selected_matches = good_matches[:n_matches]
+    # n_matches = 50
+    # selected_matches = good_matches[:n_matches]
+    # n_good_matches = len(good_matches)
+    # selected_matches = random.sample(good_matches, n_good_matches//4)
 
     # every match is cv2.DMatch object and has attributes like distance, queryIdx, trainIdx etc
-    X1_list = [kps_1[match.queryIdx].pt for match in selected_matches] 
-    X2_list = [kps_2[match.trainIdx].pt for match in selected_matches]
+    X1_list = [kps_1[match.queryIdx].pt for match in good_matches] 
+    X2_list = [kps_2[match.trainIdx].pt for match in good_matches]
     # Save the matches to a file
-    matches_file = 'matches.txt'  # Replace 'matches.txt' with your desired file name
+    matches_file = os.path.join(sift_features_folder_path, img1_name + "_sift_" + img2_name + "_matches.txt")  # Replace 'matches.txt' with your desired file name
 
     with open(matches_file, 'w') as f:
-        for match in selected_matches:
-            f.write(f"Distance: {match.distance}, Keypoint 1 idx: {match.queryIdx}, Keypoint 2 idx: {match.trainIdx}\n")
+        f.write(f"No of kps in first img: {len(kps_1)}\n")
+        f.write(f"No of kps in second img: {len(kps_2)}\n")
+        f.write(f"first img shape: {img_1.shape}\n")
+        f.write(f"second img shape: {img_2.shape}\n")
+        f.write(f"no of correspondences detected by SIFT in total: {n_good_matches}\n")
+        f.write("*********************************************************************\n")
+        f.write("Below are the random quarter matches with just indices\n")
+        f.write("*********************************************************************\n")
 
-    X1_list_all = [kps_1[match.queryIdx].pt for match in good_matches] 
-    X2_list_all = [kps_2[match.trainIdx].pt for match in good_matches]
+        for match in good_matches:
+            f.write(f"Distance: {match.distance}, Keypoint 1 idx: {kps_1[match.queryIdx].pt}, Keypoint 2 idx: {kps_2[match.trainIdx].pt}\n")
+
+
     # print('no of correspondences used for estimating F matrix: {}'.format(len(X1_list)))
-    print('no of correspondences detected by SIFT in total: {}'.format(len(X1_list_all)))
+    # print('no of correspondences detected by SIFT in total: {}'.format(len(X1_list_all)))
 
     assert len(X1_list) == len(X2_list), "no of features are not matching"
 
@@ -296,21 +310,23 @@ if __name__ == "__main__":
         image_extension = ".jpg"  # Specify the file extension for the images
 
         # Get a list of image filenames in the directory
-        masks_files = [f for f in os.listdir(masks_json_directory) if f.endswith('.json')]
-        # image_files = [f for f in os.listdir(image_directory) if f.endswith('.jpg')]
+        # masks_files = [f for f in os.listdir(masks_json_directory) if f.endswith('.json')]
+        image_files = [f for f in os.listdir(image_directory) if f.endswith('.jpg')]
 
         # Sort the image filenames numerically
-        masks_files.sort(key=lambda x: int(x.split('.')[0]))
+        # masks_files.sort(key=lambda x: int(x.split('.')[0]))
         # print('masks_files.{}'.format(masks_files))
 
-        image_files = [file_name.replace(".json", ".jpg") for file_name in masks_files]
-        # print('image_files.{}'.format(image_files))
+        # image_files = [file_name.replace(".json", ".jpg") for file_name in masks_files]
+        print('image_files.{}'.format(image_files))
 
         # Iterate over consecutive pairs of images
         for i in range(len(image_files) - 1):
             # Generate the file paths for the current pair of images
             image1_path = os.path.join(image_directory, image_files[i])
+            img1_name = image_files[i].split('.')[0]
             image2_path = os.path.join(image_directory, image_files[i + 1])
+            img2_name = image_files[i + 1].split('.')[0]
 
             #image names with multiples of 5 have already been filtered in masks_json_folder (so no need to check here)
 
@@ -319,7 +335,7 @@ if __name__ == "__main__":
             image2 = cv2.imread(image2_path)
 
             print('extracting feats and saving for images:{}, {}'.format(image_files[i], image_files[i+1]))
-            extract_and_save_feature_matches(image1, image2)
+            extract_and_save_feature_matches(image1, image2, img1_name, img2_name, sift_features_folder_path)
             # if args.output:
             #     if os.path.isdir(args.output):
             #         assert os.path.isdir(args.output), args.output
