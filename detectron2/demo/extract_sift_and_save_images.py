@@ -282,9 +282,9 @@ if __name__ == "__main__":
             args.input = glob.glob(os.path.expanduser(args.input[0]))
             assert args.input, "The input path(s) was not found"
 
-        orb_features_folder_path = os.path.join(args.input[0], "orb_features_folder")
-        if not os.path.exists(orb_features_folder_path):
-            os.makedirs(orb_features_folder_path)
+        sift_features_folder_path = os.path.join(args.input[0], "sift_features_folder")
+        if not os.path.exists(sift_features_folder_path):
+            os.makedirs(sift_features_folder_path)
 
         n_image = 1
         # Loop through all files in the input dir
