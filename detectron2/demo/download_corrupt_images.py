@@ -188,7 +188,7 @@ if __name__ == "__main__":
         n_image = 1
         # Loop through all files in the input dir
         base_url = 'http://platformpgh.cs.cmu.edu/live_stream/carfusion/Morewood/0/'     #change manually while running this script to extract masks
-        with open(os.path.join(args.input[0], ''), "r") as file:
+        with open(os.path.join(args.input[0], 'corrupted_images.txt'), "r") as file:
             for line in file:
                 # Perform operations on each line
                 # print(line.strip())  # Example: Print each line (without trailing newline)
