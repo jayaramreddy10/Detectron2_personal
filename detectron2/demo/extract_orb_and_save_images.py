@@ -296,21 +296,23 @@ if __name__ == "__main__":
         image_extension = ".jpg"  # Specify the file extension for the images
 
         # Get a list of image filenames in the directory
-        # masks_files = [f for f in os.listdir(masks_json_directory) if f.endswith('.json')]
-        image_files = [f for f in os.listdir(image_directory) if f.endswith('.jpg')]
+        masks_files = [f for f in os.listdir(masks_json_directory) if f.endswith('.json')]
+        # image_files = [f for f in os.listdir(image_directory) if f.endswith('.jpg')]
 
         # Sort the image filenames numerically
-        # masks_files.sort(key=lambda x: int(x.split('.')[0]))
+        masks_files.sort(key=lambda x: int(x.split('.')[0]))
         # print('masks_files.{}'.format(masks_files))
 
-        # image_files = [file_name.replace(".json", ".jpg") for file_name in masks_files]
-        print('image_files.{}'.format(image_files))
+        image_files = [file_name.replace(".json", ".jpg") for file_name in masks_files]
+        # print('image_files.{}'.format(image_files))
 
         # Iterate over consecutive pairs of images
         for i in range(len(image_files) - 1):
             # Generate the file paths for the current pair of images
             image1_path = os.path.join(image_directory, image_files[i])
             image2_path = os.path.join(image_directory, image_files[i + 1])
+
+            #image names with multiples of 5 have already been filtered in masks_json_folder (so no need to check here)
 
             # Load the images
             image1 = cv2.imread(image1_path)
