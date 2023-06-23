@@ -201,10 +201,10 @@ if __name__ == "__main__":
                         # if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
                         #     continue
                         
-                        image_url = base_url + image_name
-                        save_path = os.path.join(args.input[0], file)
+                        image_url = base_url + image_name + ".jpg"
+                        save_path = os.path.join(args.input[0], image_name + ".jpg")
                         download_image(image_url, save_path)
-                        img = read_image(args.input[0] + file, format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
+                        img = read_image(args.input[0] + image_name + ".jpg", format="BGR")    #exception occurs here mostly   (Note that / should be there at the end of --input arg)
                         # if(image_name.isdigit() == False):
 
                         # extract_masks(img, image_name, file, annotations_folder_path, masks_info_folder_path)

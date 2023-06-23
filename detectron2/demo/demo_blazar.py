@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
         n_image = 1
         # Loop through all files in the input dir
-        base_url = 'http://platformpgh.cs.cmu.edu/live_stream/carfusion/Morewood/0/'     #change manually while running this script to extract masks
+        base_url = 'http://platformpgh.cs.cmu.edu/live_stream/carfusion/Morewood/7/'     #change manually while running this script to extract masks
         corrupted_images = []
         for file in os.listdir(args.input[0]):
             if file.lower().endswith(".jpg") or file.lower().endswith(".jpeg"):
