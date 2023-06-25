@@ -195,10 +195,11 @@ if __name__ == "__main__":
                 while(True):
                     try: 
                         if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
-                            check_img_read = read_image(args.input[0] + image_name + ".jpg", format="BGR") 
-                            if(check_img_read is not None):
-                                print('no need to download imf: {}'.format(image_name))
-                                break
+                            break
+
+                        check_img_read = read_image(args.input[0] + image_name + ".jpg", format="BGR") 
+                        if(check_img_read is not None):
+                            print('no need to download img: {}'.format(image_name))
                         
                         image_url = base_url + image_name + ".jpg"
                         save_path = os.path.join(args.input[0], image_name + ".jpg")
