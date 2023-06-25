@@ -200,6 +200,7 @@ if __name__ == "__main__":
                         check_img_read = read_image(args.input[0] + image_name + ".jpg", format="BGR") 
                         if(check_img_read is not None):
                             print('no need to download img: {}'.format(image_name))
+                            break
                         
                         image_url = base_url + image_name + ".jpg"
                         save_path = os.path.join(args.input[0], image_name + ".jpg")
@@ -211,7 +212,7 @@ if __name__ == "__main__":
 
                     except (IOError, OSError) as e:
                         # Exception handling code
-                        num_tries = num_tries + 1
+                        # num_tries = num_tries + 1
                         continue  # Continue to the next iteration
 
                     print('download and reading of img: {} is successful'.format(image_name))
