@@ -213,6 +213,9 @@ if __name__ == "__main__":
                     except (IOError, OSError) as e:
                         # Exception handling code
                         # num_tries = num_tries + 1
+                        image_url = base_url + image_name + ".jpg"
+                        save_path = os.path.join(args.input[0], image_name + ".jpg")
+                        download_image(image_url, save_path)
                         continue  # Continue to the next iteration
 
                     print('download and reading of img: {} is successful'.format(image_name))
