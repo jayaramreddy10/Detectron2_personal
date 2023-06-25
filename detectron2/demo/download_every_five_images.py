@@ -190,12 +190,15 @@ if __name__ == "__main__":
         base_url = 'http://platformpgh.cs.cmu.edu/live_stream/carfusion/Morewood/0/'     #change manually while running this script to extract masks
         for file in os.listdir(args.input[0]):
             if file.lower().endswith(".jpg") or file.lower().endswith(".jpeg"):
-                image_name = file.lower.split('.')[0]
+                image_name = file.lower().split('.')[0]
                 print('image name: {}'.format(image_name))
                 while(True):
                     try: 
                         if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
-                            continue
+                            check_img_read = read_image(args.input[0] + image_name + ".jpg", format="BGR") 
+                            if(check_img_read is not None):
+                                print('no need to download imf: {}'.format(image_name))
+                                break
                         
                         image_url = base_url + image_name + ".jpg"
                         save_path = os.path.join(args.input[0], image_name + ".jpg")
