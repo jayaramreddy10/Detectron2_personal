@@ -197,8 +197,10 @@ if __name__ == "__main__":
                 image_name = file.lower().split('.')[0]
                 print('image name: {}'.format(image_name))
                 try: 
-                    file_path = os.path.join(os.path.join(args.input[0], "masks_info_folder"), image_name + ".json")
-                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0)) or (os.path.isfile(file_path))):
+                    # file_path = os.path.join(os.path.join(args.input[0], "masks_info_folder"), image_name + ".json")
+                    # if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0)) or (os.path.isfile(file_path))):
+                    #     continue
+                    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
                         continue
                     
                     # image_url = base_url + file
