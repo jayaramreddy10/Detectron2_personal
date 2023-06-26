@@ -280,6 +280,11 @@ def extract_masks(img, image_name, file, annotations_folder_path, masks_info_fol
     with open(json_file_path, 'w') as json_file:
         json.dump(coco_annotations, json_file)
 
+def check_image_name_multiple_of_five(image_name):
+    if((image_name.isdigit() == False) or (image_name.isdigit() and (int(image_name)%5 != 0))):
+        return False
+    return True
+
 if __name__ == "__main__":
     mp.set_start_method("spawn", force=True)
     args = get_parser().parse_args()
@@ -311,7 +316,7 @@ if __name__ == "__main__":
 
         # Get a list of image filenames in the directory
         # masks_files = [f for f in os.listdir(masks_json_directory) if f.endswith('.json')]
-        image_files = [f for f in os.listdir(image_directory) if f.endswith('.jpg')]
+        image_files = [f for f in os.listdir(image_directory) if (f.endswith('.jpg') and (check_image_name_multiple_of_five(f.split('.')[0])))]
 
         # Sort the image filenames numerically
         image_files.sort(key=lambda x: int(x.split('.')[0]))
